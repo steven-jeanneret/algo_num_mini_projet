@@ -56,18 +56,24 @@ function setup() {
 
     console.log("angle : " + radToDegre(alpha2));
     let x;
-    let c = 0;
+
     if (alpha2 == 0) {
         x = [xb,yb];
     } else if (alpha2 < 0) {
         x = faisceauInterne(alpha2, pX2, pY2, x2, y2);
     } else {
         x = faisceauInterne(alpha2, pX3, pY3, x2, y2);
-        c = color(255, 0, 0);
     }
     let x3 = x[0];
     let y3 = x[1];
 
+    //TODO refraction interne
+    /*let c = 0;
+    c = color(255, 0, 0); si < crit*/
+    //TODO couleur de sortie (longueur d'onde)
+
+
+    //Partie dessin
     push();
     stroke(0);
     translate(width * 0.5 - l / 2, height * 0.5 - h / 2);
