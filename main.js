@@ -1,56 +1,80 @@
 function setup() {
     createCanvas(720, 400);
+
+    /* valeur pour le triangle */
+    l = 150; //largeur d'une face
+    h = Math.sqrt(l * l - (l / 2) * (l / 2)); //Hauteur du triangle
+    // les 3 sommets du triangle
+    xa = l / 2;
+    ya = 0;
+    xb = l;
+    yb = h;
+    xc = 0;
+    yc = h;
+
+    /* Tableau de points de la 2ème face (à droite) */
+    let pX2 = [];
+    let pY2 = [];
+    for (let i = 1; i < l; i++) {
+        pX2.push(xa + Math.cos(degreToRad(60)) * i);
+        pY2.push(ya + Math.sin(degreToRad(60)) * i);
+    }
+
+    /* Coordonnées du faisceau laser */
+    let length = 200;
+    let alpha1 = degreToRad(-80);
+    x2 = l / 4;
+    y2 = h / 2;
+    if (alpha1 < 0) {
+        x1 = x2 + Math.cos(angleToAlpha(alpha1, degreToRad(60))) * length;
+        y1 = y2 - Math.sin(angleToAlpha(alpha1, degreToRad(60))) * length;
+    } else {
+        x1 = x2 - Math.cos(angleToAlpha(alpha1, degreToRad(60))) * length;
+        y1 = y2 - Math.sin(angleToAlpha(alpha1, degreToRad(60))) * length;
+    }
+
+
+    /* Calcul premier angle entrant dans le prisme */
+    let n = 1.5;
+    let alpha2 = Math.asin(Math.sin(alpha1) / n);
+
+    /*  Faisceau interne  */
+    let alphaActuel = 0;
+    let iActuel = 0;
+    for (let i = 0; i < pX2.length; i++) {
+        let alphaTemp = findAngle(x2, y2, pX2[i], pY2[i]);
+        if (Math.abs(alphaTemp - alpha2) < Math.abs(alphaActuel - alpha2)) {
+            iActuel = i;
+            alphaActuel = alphaTemp;
+        }
+    }
+    x3 = pX2[iActuel];
+    y3 = pY2[iActuel];
+
 }
 
 function draw() {
-    background(200);
-
+    background(200); //Couleur d'arrière plan
     push();
-    translate(width * 0.5, height * 0.5);
-    rotate(0.52);
-    let largeurFace = 250;
-    polygon(0, 0, largeurFace, 3);
-    pop();
-
-    let distanceLine = 115;
-    let alpha1 = degreToRad(-30);
-    let x2 = width * 0.5 - largeurFace / 3 - 9;
-    let y2 = height * 0.5 - largeurFace / 3 - 9;
-    //Calcul des points à dessiner pour le faisceau laser entrant en fonction de l'angle
-    let x1;
-    let y1;
-    if (alpha1 < 0) {
-        x1 = x2 + cos(angleToAlpha(alpha1, degreToRad(60))) * distanceLine;
-        y1 = y2 - sin(angleToAlpha(alpha1, degreToRad(60))) * distanceLine;
-    } else {
-        x1 = x2 - cos(angleToAlpha(alpha1, degreToRad(60))) * distanceLine;
-        y1 = y2 - sin(angleToAlpha(alpha1, degreToRad(60))) * distanceLine;
-    }
-    let n = 1.5;
-    //Faisceau laser
-    push();
-    line(x1, y1, x2, y2);
-    pop();
-
-    //Faisceau interne
-    let alpha2 = asin(sin(alpha1) / n);
-    console.log(radToDegre(alpha2));
-    let x3 = x2 + cos(((alpha2))) * distanceLine;
-    let y3 = y2 - sin(((alpha2))) * distanceLine;
-    line(x2, y2, x3, y3);
-
-
+    translate(width * 0.5 - l / 2, height * 0.5 - h / 2);
+    triangle(xa, ya, xb, yb, xc, yc); //Dessin du triangle
+    line(x1, y1, x2, y2); //Dessin du faisceau laser
+    line(x2, y2, x3, y3); //Dessin du rayon interne
 }
 
-function polygon(x, y, radius, npoints) {
-    var angle = TWO_PI / npoints;
-    beginShape();
-    for (var a = 0; a < TWO_PI; a += angle) {
-        var sx = x + cos(a) * radius;
-        var sy = y + sin(a) * radius;
-        vertex(sx, sy);
-    }
-    endShape(CLOSE);
+/**
+ * trouve l'angle entre 2 points (pente)
+ * @param x1
+ * @param y1
+ * @param x2
+ * @param y2
+ * @returns {number}
+ */
+function findAngle(x1, y1, x2, y2) {
+    let x = x2 - x1;
+    let y = y2 - y1;
+    let angle = Math.atan(y / x);
+    return angle - degreToRad(30);
 }
 
 function angleToAlpha(angle, decalage) {
