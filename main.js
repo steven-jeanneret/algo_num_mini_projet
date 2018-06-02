@@ -1,6 +1,7 @@
 function setup() {
-    createCanvas(720, 400);
-
+    var canvas = createCanvas(document.getElementById('container').offsetWidth, 500);
+    canvas.parent('container');
+    background(200); //Couleur d'arrière plan
     /* valeur pour le triangle */
     l = 150; //largeur d'une face
     h = Math.sqrt(l * l - (l / 2) * (l / 2)); //Hauteur du triangle
@@ -22,7 +23,7 @@ function setup() {
 
     /* Coordonnées du faisceau laser */
     let length = 200;
-    let alpha1 = degreToRad(-80);
+    let alpha1 = degreToRad(document.getElementById('radius').innerText);
     x2 = l / 4;
     y2 = h / 2;
     if (alpha1 < 0) {
@@ -35,7 +36,7 @@ function setup() {
 
 
     /* Calcul premier angle entrant dans le prisme */
-    let n = 1.5;
+    let n = document.getElementById('n').innerText;
     let alpha2 = Math.asin(Math.sin(alpha1) / n);
 
     /*  Faisceau interne  */
@@ -54,7 +55,6 @@ function setup() {
 }
 
 function draw() {
-    background(200); //Couleur d'arrière plan
     push();
     translate(width * 0.5 - l / 2, height * 0.5 - h / 2);
     triangle(xa, ya, xb, yb, xc, yc); //Dessin du triangle
@@ -62,14 +62,7 @@ function draw() {
     line(x2, y2, x3, y3); //Dessin du rayon interne
 }
 
-/**
- * trouve l'angle entre 2 points (pente)
- * @param x1
- * @param y1
- * @param x2
- * @param y2
- * @returns {number}
- */
+/* trouve l'angle entre 2 points (pente) */
 function findAngle(x1, y1, x2, y2) {
     let x = x2 - x1;
     let y = y2 - y1;
