@@ -79,7 +79,7 @@ function setup() {
     translate(width * 0.5 - l / 2, height * 0.5 - h / 2);
     triangle(xa, ya, xb, yb, xc, yc); //Dessin du triangle
     line(x1, y1, x2, y2); //Dessin du faisceau laser
-    stroke(c);
+    // stroke(c);
     line(x2, y2, x3, y3, color(255, 0, 0)); //Dessin du rayon interne
 }
 
