@@ -53,19 +53,14 @@
 
         </div>
     </div>
-    <div class="row mb-5">
-        <div class="col-sm">
-            Indice de réfraction :
-        </div>
-        <div class="col-6">
-            <input type="range" min="1" max="3" value="1.5" class="slider" id="rangeN" step="0.1">
-        </div>
-        <div class="col-sm" id="n">
-
-        </div>
-    </div>
-
     <div id="container" class="pt-5"></div>
+
+    <div><h3>Explication : </h3>
+        <p>Comme il n'existe pas de formule pour trouver l'indice de refraction en fonction de la longueur d'onde,
+        j'ai choisis de limité le milieu à du verre crown</p>
+        <p>J'ai pris les valeurs minimum et maximum du spectre visible pour ce type de verre (issue du cours de M. Kocian)
+        et j'ai découpé en interval pour avoir 6 couleurs.</p>
+    </div>
 </div>
 </body>
 <script>
@@ -80,16 +75,7 @@
         setup();
     }
 
-    //Indice de refraction
-    var sliderN = document.getElementById("rangeN");
-    var outputN = document.getElementById("n");
-    outputN.innerHTML = sliderN.value; // Display the default sliderN value
 
-    // Update the current sliderN value (each time you drag the sliderN handle)
-    sliderN.oninput = function () {
-        outputN.innerHTML = this.value;
-        setup();
-    }
 </script>
 
 </html>
