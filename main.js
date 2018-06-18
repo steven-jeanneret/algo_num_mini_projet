@@ -1,211 +1,155 @@
+class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    /*Donne le décalage entre la normale de la face actuel et l'horizontal */
+    getDecalageFace(l, h) {
+        // on s'assure que ce n'est pas un des 2 points de construction du triangle de la face du bas */
+        if (this.y == h && !(this.x == 0 || this.x == l)) {
+            return degreToRad(-90)
+        }
+        else if (this.x < l / 2) {
+            return degreToRad(30);
+        }
+        return degreToRad(-30);
+    }
+}
+
 function setup() {
     /* valeur pour le triangle */
-    let l = 150; //largeur d'une face
+    let l = 150; //Longueur d'une face
     let h = Math.sqrt(l * l - (l / 2) * (l / 2)); //Hauteur du triangle
-    // les 3 sommets du triangle
-    let xa = l / 2;
-    let ya = 0;
-    let xb = l;
-    let yb = h;
-    let xc = 0;
-    let yc = h;
+    //Les 3 sommets du triangle
+    let pA = new Point(l / 2, 0); //Point du haut
+    let pB = new Point(l, h); //Point de droite
+    let pC = new Point(0, h); //Point de gauche
 
-    var canvas = createCanvas(document.getElementById('container').offsetWidth, 500);
+    /* Création de la zone dessinable */
+    let canvas = createCanvas(document.getElementById('container').offsetWidth, 500);
     canvas.parent('container');
-    background(200); //Couleur d'arrière plan
-    push(); //S'assure qu'il n'y a pas de translation ou autres d'avant
-    stroke(0); //Couleur des traits en noir
+    push(); //S'assure qu'il n'y a pas de transition d'avant
+    background(0); //Couleur d'arrière plan
     translate(width * 0.5 - l / 2, height * 0.5 - h / 2); //Positionnement au centre du futur triangle
-    triangle(xa, ya, xb, yb, xc, yc); //Dessin du triangle
+    triangle(pA.x, pA.y, pB.x, pB.y, pC.x, pC.y); //Dessin du triangle
+    stroke(255, 0, 0);
+    /* Tableau contenant tous les points du triangle */
+    let tabPoint = pointsTriangle(pA, pB, pC, l);
 
-    /* Tableau de points des faces  */
-    let p = pointsFace(xc,yc,degreToRad(60),l);
-    let pX2 = p[0];
-    let pY2 = p[1];
+    /* Faisceau laser */
+    let nOut = 1; //On considère qu'il s'agit d'air dehors du prisme
+    let lengthLaser = 200; //Longueur du laser en pixels (ce n'est pas la longueur d'onde)
+    let alphaIn = degreToRad(document.getElementById('radius').innerText);
+    let pLaser2 = new Point(l / 4, h / 2);
+    let pLaser1 = new Point(pLaser2.x + Math.cos(alphaIn - (Math.PI - pLaser2.getDecalageFace(l, h))) * lengthLaser, pLaser2.y + Math.sin(alphaIn - (Math.PI - pLaser2.getDecalageFace(l, h))) * lengthLaser);
+    line(pLaser1.x, pLaser1.y, pLaser2.x, pLaser2.y);
 
-    p = pointsFace(xa, ya, degreToRad(60), l);
-    let pX1 = p[0];
-    let pY1 = p[1];
+    let nIn = document.getElementById('n').innerText;
+    let alphaCrit = Math.asin(nOut / nIn);
+    let pointLast = pLaser2;
+    let alphaLast = alphaIn;
+    let alpha3;
+    let pX;
 
-    p = pointsFace(xc, yc, degreToRad(0), l);
-    let pX3 = p[0];
-    let pY3 = p[1];
-
-    /* Coordonnées du faisceau laser */
-    let n1 = 1;
-    let length = 200;
-    let alpha1 = degreToRad(document.getElementById('radius').innerText);
-    let x2 = l / 4;
-    let y2 = h / 2;
-    let x1;
-    let y1;
-    if (alpha1 < 0) {
-        x1 = x2 + Math.cos(angleToAlpha(alpha1, degreToRad(60))) * length;
-        y1 = y2 - Math.sin(angleToAlpha(alpha1, degreToRad(60))) * length;
-    } else {
-        x1 = x2 - Math.cos(angleToAlpha(alpha1, degreToRad(60))) * length;
-        y1 = y2 - Math.sin(angleToAlpha(alpha1, degreToRad(60))) * length;
-    }
-    line(x1, y1, x2, y2); //Dessin du faisceau laser
-
-    /* Calcul premier angle entrant dans le prisme */
-    let n2 = document.getElementById('n').innerText;
-
-    let alphaCrit = Math.asin(n1 / n2); //Agira pour la sortie uniquement
-
-    let x;
-    /*
-        Face :
-        0 sommet A à B (face de droite)
-        1 sommet B à C (face du bas)
-        2 sommet C à A (face de gauche)
-     */
-    let lastFace = "2";
-    let newFace;
-    let pXa;
-    let pYa;
-    let xA = x2;
-    let yA = y2;
-    let decalage;
-    let alpha2 = Math.asin(Math.sin(alpha1) * n1 / n2);;
-    let cpt = 10; //Nombre de traits interne max
-
-    let alphaOut = Math.asin(Math.sin(alpha2) * n2 / n1); //Si on peut sortir?
+    let alpha2 = Math.asin(Math.sin(alphaLast) * nOut / nIn);
     do {
-
-        console.log("angle : " + radToDegre(alpha2));
-        decalage = getDecalage(lastFace);
-        // if (alpha2 == 0) {
-        //     x = [xb, yb];
-        //     newFace = (lastFace + 1) % 3;
-        // } else {
-        if (alpha2 < 0) {
-            newFace = (lastFace + 1) % 3;
+        pX = nextPoint(alpha2, tabPoint, pointLast, pointLast.getDecalageFace(l, h));
+        line(pointLast.x, pointLast.y, pX.x, pX.y);
+        if(findAngle(pointLast,pX)+pX.getDecalageFace(l,h)==0) {
+            alpha3 = 0;
         } else {
-            newFace = (lastFace + 2) % 3;
-        }
-
-        if(newFace == 0) {
-            pXa = pX1;
-            pYa = pY1;
-        } else if(newFace == 1) {
-            pXa = pX3;
-            pYa = pY3;
-        } else {
-            pXa = pX3;
-            pYa = pY3;
-        }
-        x = faisceauInterne(alpha2, pXa, pYa, xA, yA, decalage);
-        // }
-        let x3 = x[0];
-        let y3 = x[1];
-        line(xA, yA, x3, y3, color(255, 0, 0)); //Dessin du rayon interne
-        lastFace = newFace;
-        xA = x3;
-        yA = y3;
-        alpha2 = (degreToRad(90) - alpha2);
-        cpt--;
-        if(Math.abs(alphaOut) > alphaCrit) {
-            stroke(color(255,0,0));
-        }
-        let xFinal;
-        let yFinal;
-
-        yFinal = yA + Math.sin(angleToAlpha(alphaOut, degreToRad(decalage))) * length;
-        if (newFace == 0) {
-            decalage = 180 - getDecalage(newFace);
-            xFinal = xA + Math.cos(angleToAlpha(alphaOut, degreToRad(decalage))) * length;
-            if (alphaOut < 0) {
-                yFinal = yA - Math.sin(angleToAlpha(alphaOut, degreToRad(decalage))) * length;
-            } else {
-                yFinal = yA + Math.sin(angleToAlpha(alphaOut, degreToRad(decalage))) * length;
+            alpha3 = findAngle(pointLast, pX) - pX.getDecalageFace(l, h);
+            while (alpha3 > 1 / 2 * Math.PI) {
+                alpha3 -= Math.PI;
             }
-        } else if (newFace == 1) {
-            decalage = getDecalage(newFace);
-            if (alphaOut < 0) {
-                xFinal = xA - Math.cos(angleToAlpha(alphaOut, degreToRad(decalage))) * length;
-            } else {
-                xFinal = xA + Math.cos(angleToAlpha(alphaOut, degreToRad(decalage))) * length;
+            while (alpha3 < -1 / 2 * Math.PI) {
+                alpha3 += Math.PI;
             }
-            yFinal = yA + Math.sin(angleToAlpha(alphaOut, degreToRad(decalage))) * length;
-        } else {
-            decalage = getDecalage(newFace);
-            xFinal = xA + Math.cos(angleToAlpha(alphaOut, degreToRad(decalage))) * length;
-            yFinal = yA + Math.sin(angleToAlpha(alphaOut, degreToRad(decalage))) * length;
+            if (pX.y == h) {
+                alpha2 = -(findAngle(pointLast, pX) + pX.getDecalageFace(l, h));
+            } else {
+                alpha2 = -(findAngle(pointLast, pX) - pX.getDecalageFace(l, h));
+            }
         }
+        pointLast = pX;
+    } while (Math.abs(alpha3) > alphaCrit); //On fait un module de 2pi pour être sur de pas avoir une valeur au dela d'un tour.
+    let alphaOut =  -Math.PI + pX.getDecalageFace(l, h) + Math.asin(Math.sin(alpha3) * nIn / nOut); //Calcul de l'angle sortant à dessiner
 
-        console.log("xFinal : " + xFinal + "yFinal : " + yFinal);
-        console.log("xA : " + xA + "yA : " + yA)
-        line(xA, yA, xFinal, yFinal, color(255, 0, 0)); //Dessin du rayon sortant
-    } while (Math.abs(alphaOut) > alphaCrit && cpt > 0) ;
-    console.log("cpt : " + cpt);
-//TODO refraction interne
-    /*let c = 0;
-    c = color(255, 0, 0); si < crit*/
-
-    console.log("alpha out : " + radToDegre(alphaOut));
-
-//TODO couleur de sortie (longueur d'onde)
-// stroke(c);
-}
-
-function getDecalage(lastFace) {
-    if (lastFace == 2) {
-        return 30;
-    } else if (lastFace == 1) {
-        return 90;
+    let pOut;
+    /* Direction du rayon sortant,si on sort de la face du bas, elle ne sera pas la même que si l'on sort de la face de droite */
+    if(pX.y == h) {
+        pOut = new Point(pX.x + Math.cos(alphaOut) * l, pX.y + Math.sin(alphaOut) * l);
     } else {
-        return 330;
+        pOut = new Point(pX.x - Math.cos(alphaOut) * l, pX.y - Math.sin(alphaOut) * l);
     }
+
+    line(pX.x, pX.y, pOut.x, pOut.y);
 }
 
-function pointsFace(x, y, angle, l) {
-    let pX = [];
-    let pY = [];
-    for (let i = 0; i <= l; ++i) {
-        pX.push(x + Math.cos(angle) * i);
-        pY.push(y + Math.sin(angle) * i);
-    }
-    return [pX, pY];
+/**
+ * Retourne un tableau contenant les coordonnées en points du triangle
+ * @param pA le point en haut
+ * @param pB le point à droite
+ * @param pC le point à gauche
+ * @param l la longueur des côtés
+ * @returns {*[]}
+ */
+function pointsTriangle(pA, pB, pC, l) {
+    let tabPointA = pointsFace(pA, degreToRad(60), l);
+    let tabPointB = pointsFace(pB, degreToRad(180), l);
+    let tabPointC = pointsFace(pC, degreToRad(-60), l);
+    return tabPointA.concat(tabPointB, tabPointC);
 }
 
-/*  Faisceau interne  */
-function faisceauInterne(alpha2, pX, pY, x, y, decalage) {
-    let alphaActuel = 0;
+/**
+ * Retourne un tableau contenant les coordonnées d'une face d'un triangle
+ * @param p
+ * @param angle
+ * @param l
+ * @returns {Array}
+ */
+function pointsFace(p, angle, l) {
+    let tabPointFace = [];
+    for (let i = 0; i < l; ++i) {
+        tabPointFace.push(new Point(p.x + Math.cos(angle) * i, p.y + Math.sin(angle) * i));
+    }
+    return tabPointFace;
+}
+
+function findAngle(p1, p2) {
+    let x = p2.x - p1.x;
+    let y = p2.y - p1.y;
+    return Math.atan(y / x);
+}
+
+function nextPoint(alpha2, tabPoint, pLaser2, decalage) {
     let iActuel = 0;
-    for (let i = 0; i < pX.length; i++) {
-        let alphaTemp = findAngle(x, y, pX[i], pY[i], decalage);
-        if (Math.abs(alphaTemp - alpha2) <= Math.abs(alphaActuel - alpha2)) {
+    let alphaActuel = findAngle(pLaser2, tabPoint[iActuel], decalage) - decalage;
+    for (let i = 1; i < tabPoint.length; ++i) {
+        let alphaTemp = findAngle(pLaser2, tabPoint[i], decalage) - decalage;
+        if (Math.abs(alphaTemp - alpha2) < Math.abs(alphaActuel - alpha2)) {
             iActuel = i;
             alphaActuel = alphaTemp;
         }
     }
-    console.log(radToDegre(findAngle(x, y, pX[iActuel], pY[iActuel], decalage)));
-    return [pX[iActuel], pY[iActuel]];
+    return tabPoint[iActuel];
 }
 
-/* trouve l'angle entre 2 points (pente) */
-function findAngle(x1, y1, x2, y2, decalage) {
-    let x = x2 - x1;
-    let y = y2 - y1;
-    let angle = Math.atan(y / x);
-    if(x<0) {
-        angle += degreToRad(180);
-    }
-    return angle - degreToRad(decalage);
-}
-
-function angleToAlpha(angle, decalage) {
-    if (angle < 0) {
-        return -angle + degreToRad(90) + decalage;
-    }
-    return angle + degreToRad(90) - decalage;
-}
-
+/**
+ * Convertis un angle de radian à degré
+ * @param angle
+ * @returns {number}
+ */
 function radToDegre(angle) {
     return angle / Math.PI * 180;
 }
 
+/**
+ * Convertis un angle de degré à radian
+ * @param angle
+ * @returns {number}
+ */
 function degreToRad(angle) {
     return angle * Math.PI / 180;
 }
