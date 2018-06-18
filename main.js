@@ -31,9 +31,10 @@ function setup() {
     canvas.parent('container');
     push(); //S'assure qu'il n'y a pas de transition d'avant
     background(0); //Couleur d'arrière plan
+    fill(150);
     translate(width * 0.5 - l / 2, height * 0.5 - h / 2); //Positionnement au centre du futur triangle
     triangle(pA.x, pA.y, pB.x, pB.y, pC.x, pC.y); //Dessin du triangle
-    stroke(255, 0, 0);
+    stroke(255);
     /* Tableau contenant tous les points du triangle */
     let tabPoint = pointsTriangle(pA, pB, pC, l);
 
@@ -41,49 +42,48 @@ function setup() {
     let nOut = 1; //On considère qu'il s'agit d'air dehors du prisme
     let lengthLaser = 200; //Longueur du laser en pixels (ce n'est pas la longueur d'onde)
     let alphaIn = degreToRad(document.getElementById('radius').innerText);
-    let pLaser2 = new Point(l / 4, h / 2);
-    let pLaser1 = new Point(pLaser2.x + Math.cos(alphaIn - (Math.PI - pLaser2.getDecalageFace(l, h))) * lengthLaser, pLaser2.y + Math.sin(alphaIn - (Math.PI - pLaser2.getDecalageFace(l, h))) * lengthLaser);
-    line(pLaser1.x, pLaser1.y, pLaser2.x, pLaser2.y);
+    let pLaser2 = new Point(l / 4, h / 2); //Point d'arrivée du laser
+    let pLaser1 = new Point(pLaser2.x + Math.cos(alphaIn - (Math.PI - pLaser2.getDecalageFace(l, h))) * lengthLaser,
+        pLaser2.y + Math.sin(alphaIn - (Math.PI - pLaser2.getDecalageFace(l, h))) * lengthLaser); //Calcul du point de départ du laser
+    line(pLaser1.x, pLaser1.y, pLaser2.x, pLaser2.y); //Dessin du laser
 
     let nIn = document.getElementById('n').innerText;
-    let alphaCrit = Math.asin(nOut / nIn);
-    let pointLast = pLaser2;
-    let alphaLast = alphaIn;
-    let alpha3;
-    let pX;
-
-    let alpha2 = Math.asin(Math.sin(alphaLast) * nOut / nIn);
+    let alphaCrit = Math.asin(nOut / nIn); //Angle critique pour la reflexion interne totale
+    let pointLast = pLaser2; //Définition de variable pour la boucle
+    let alphaLast = alphaIn; //Définition de variable pour la boucle
+    let alpha3; //Définition de variable pour la boucle
+    let pX; //Définition de variable pour la boucle
+    let alpha2 = Math.asin(Math.sin(alphaLast) * nOut / nIn); //Calcul de l'angle théorique d'entrée
     do {
-        pX = nextPoint(alpha2, tabPoint, pointLast, pointLast.getDecalageFace(l, h));
+        pX = nextPoint(alpha2, tabPoint, pointLast, pointLast.getDecalageFace(l, h)); //On récupère le prochain point à dessiner
         line(pointLast.x, pointLast.y, pX.x, pX.y);
-        if(findAngle(pointLast,pX)+pX.getDecalageFace(l,h)==0) {
+        if(findAngle(pointLast,pX)+pX.getDecalageFace(l,h)==0) { //Si l'angle atteint un des 3 angles du triangles
             alpha3 = 0;
         } else {
-            alpha3 = findAngle(pointLast, pX) - pX.getDecalageFace(l, h);
-            while (alpha3 > 1 / 2 * Math.PI) {
+            alpha3 = findAngle(pointLast, pX) - pX.getDecalageFace(l, h); //On cherche l'angle d'arrivé avec le prochin côté
+            while (alpha3 > 1 / 2 * Math.PI) { //L'angle ne peut être plus grand que 90°
                 alpha3 -= Math.PI;
             }
-            while (alpha3 < -1 / 2 * Math.PI) {
+            while (alpha3 < -1 / 2 * Math.PI) { //L'angle ne peut être plus petit que -90°
                 alpha3 += Math.PI;
             }
-            if (pX.y == h) {
+            if (pX.y == h) { //Si on touche la parois du bas
                 alpha2 = -(findAngle(pointLast, pX) + pX.getDecalageFace(l, h));
             } else {
                 alpha2 = -(findAngle(pointLast, pX) - pX.getDecalageFace(l, h));
             }
         }
         pointLast = pX;
-    } while (Math.abs(alpha3) > alphaCrit); //On fait un module de 2pi pour être sur de pas avoir une valeur au dela d'un tour.
+    } while (Math.abs(alpha3) > alphaCrit); //Tant qu'on est plus grand que alphacritique, il y a reflexion interne totale
     let alphaOut =  -Math.PI + pX.getDecalageFace(l, h) + Math.asin(Math.sin(alpha3) * nIn / nOut); //Calcul de l'angle sortant à dessiner
 
     let pOut;
     /* Direction du rayon sortant,si on sort de la face du bas, elle ne sera pas la même que si l'on sort de la face de droite */
     if(pX.y == h) {
-        pOut = new Point(pX.x + Math.cos(alphaOut) * l, pX.y + Math.sin(alphaOut) * l);
+        pOut = new Point(pX.x + Math.cos(alphaOut) * l * 10, pX.y + Math.sin(alphaOut) * l * 10); // *10 pour un trait "infini"
     } else {
-        pOut = new Point(pX.x - Math.cos(alphaOut) * l, pX.y - Math.sin(alphaOut) * l);
+        pOut = new Point(pX.x - Math.cos(alphaOut) * l * 10, pX.y - Math.sin(alphaOut) * l * 10); // *10 pour un trait "infini"
     }
-
     line(pX.x, pX.y, pOut.x, pOut.y);
 }
 
@@ -117,32 +117,37 @@ function pointsFace(p, angle, l) {
     return tabPointFace;
 }
 
+/**
+ * Calcul la pente entre 2 points, = à l'angle
+ * @param p1
+ * @param p2
+ * @returns {number}
+ */
 function findAngle(p1, p2) {
     let x = p2.x - p1.x;
     let y = p2.y - p1.y;
     return Math.atan(y / x);
 }
 
-function nextPoint(alpha2, tabPoint, pLaser2, decalage) {
+/**
+ * Retourne le prochain point en approximant au mieux l'angle
+ * @param alpha2 angle a approximer
+ * @param tabPoint les points du triangle
+ * @param pDepart point de départ du trait
+ * @param decalage décalage avec la normale
+ * @returns {*}
+ */
+function nextPoint(alpha2, tabPoint, pDepart, decalage) {
     let iActuel = 0;
-    let alphaActuel = findAngle(pLaser2, tabPoint[iActuel], decalage) - decalage;
+    let alphaActuel = findAngle(pDepart, tabPoint[iActuel], decalage) - decalage;
     for (let i = 1; i < tabPoint.length; ++i) {
-        let alphaTemp = findAngle(pLaser2, tabPoint[i], decalage) - decalage;
+        let alphaTemp = findAngle(pDepart, tabPoint[i], decalage) - decalage;
         if (Math.abs(alphaTemp - alpha2) < Math.abs(alphaActuel - alpha2)) {
             iActuel = i;
             alphaActuel = alphaTemp;
         }
     }
     return tabPoint[iActuel];
-}
-
-/**
- * Convertis un angle de radian à degré
- * @param angle
- * @returns {number}
- */
-function radToDegre(angle) {
-    return angle / Math.PI * 180;
 }
 
 /**
