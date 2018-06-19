@@ -28,12 +28,12 @@ function setup() {
 
     /* Définition des couleurs pour la dispersion */
     let col = [
-        color(107, 63, 160,180),
-        color(0, 0, 255,180),
-        color(0, 255, 0,180),
-        color(250, 218, 94,180),
-        color(253, 106, 2,180),
-        color(255, 0, 0,180),
+        color(107, 63, 160,255),
+        color(0, 0, 255,255),
+        color(0, 255, 0,255),
+        color(250, 218, 94,255),
+        color(253, 106, 2,255),
+        color(255, 0, 0,255),
     ];
     //Interval d'indice du rouge au violet
     let nVerre = [
@@ -54,14 +54,14 @@ function setup() {
     /* Tableau contenant tous les points du triangle */
     let tabPoint = pointsTriangle(pA, pB, pC, l);
 
-    /* Faisceau laser */
+    /* Faisceau rayo incident */
     let nOut = 1; //On considère qu'il s'agit d'air dehors du prisme
-    let lengthLaser = 200; //Longueur du laser en pixels (ce n'est pas la longueur d'onde)
+    let lengthRayonIncident = 200; //Longueur du rayo incident en pixels (ce n'est pas la longueur d'onde)
     let alphaIn = degreToRad(document.getElementById('radius').innerText);
-    let pLaser2 = new Point(l / 4, h / 2); //Point d'arrivée du laser
-    let pLaser1 = new Point(pLaser2.x + Math.cos(alphaIn - (Math.PI - pLaser2.getDecalageFace(l, h))) * lengthLaser,
-        pLaser2.y + Math.sin(alphaIn - (Math.PI - pLaser2.getDecalageFace(l, h))) * lengthLaser); //Calcul du point de départ du laser
-    line(pLaser1.x, pLaser1.y, pLaser2.x, pLaser2.y); //Dessin du laser
+    let pRayonIncident2 = new Point(l / 4, h / 2); //Point d'arrivée du rayo incident
+    let pRayonIncident1 = new Point(pRayonIncident2.x + Math.cos(alphaIn - (Math.PI - pRayonIncident2.getDecalageFace(l, h))) * lengthRayonIncident,
+        pRayonIncident2.y + Math.sin(alphaIn - (Math.PI - pRayonIncident2.getDecalageFace(l, h))) * lengthRayonIncident); //Calcul du point de départ du rayo incident
+    line(pRayonIncident1.x, pRayonIncident1.y, pRayonIncident2.x, pRayonIncident2.y); //Dessin du rayo incident
 
     let nIn = nVerre[0];
     let alpha3; //Définition de variable pour la boucle
@@ -72,7 +72,7 @@ function setup() {
 
     for (let i = 0; i < col.length; ++i) {
         let alphaCrit = Math.asin(nOut / nIn); //Angle critique pour la reflexion interne totale
-        let pointLast = pLaser2; //Définition de variable pour la boucle
+        let pointLast = pRayonIncident2; //Définition de variable pour la boucle
         let alphaLast = alphaIn; //Définition de variable pour la boucle
         let alpha2 = Math.asin(Math.sin(alphaLast) * nOut / nIn); //Calcul de l'angle théorique d'entrée
 
@@ -101,9 +101,9 @@ function setup() {
 
         let alphaOut = -Math.PI + pX.getDecalageFace(l, h) + Math.asin(Math.sin(alpha3) * nIn / nOut);
         if (pX.y == h) {
-            pOut = new Point(pX.x + Math.cos(alphaOut) * l * 10, pX.y + Math.sin(alphaOut) * l * 10); // *10 pour un trait "infini"
+            pOut = new Point(pX.x + Math.cos(alphaOut) * l * 5, pX.y + Math.sin(alphaOut) * l * 5); // *5 pour un trait "infini"
         } else {
-            pOut = new Point(pX.x - Math.cos(alphaOut) * l * 10, pX.y - Math.sin(alphaOut) * l * 10); // *10 pour un trait "infini"
+            pOut = new Point(pX.x - Math.cos(alphaOut) * l * 5, pX.y - Math.sin(alphaOut) * l * 5); // *5 pour un trait "infini"
         }
         line(pX.x, pX.y, pOut.x, pOut.y);
         nIn += interval;
