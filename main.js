@@ -134,7 +134,7 @@ function pointsTriangle(pA, pB, pC, l) {
  */
 function pointsFace(p, angle, l) {
     let tabPointFace = [];
-    for (let i = 0; i < l; ++i) {
+    for (let i = 0; i < l; i+=0.1) {
         tabPointFace.push(new Point(p.x + Math.cos(angle) * i, p.y + Math.sin(angle) * i));
     }
     return tabPointFace;
